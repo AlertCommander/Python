@@ -1,23 +1,40 @@
-PORT = '/dev/ttyUSB2'
-BAUDRATE = 115200
-PIN = None
-recipients = ['0043xxxxxxxxxx']
+recipients = ['+436503552474']
+tokens = ['abc123']
+device = "/dev/ttyUSB0"
 
-from gsmmodem.modem import GsmModem
+import serial
+import time
+
 from flask import Flask, request
-
-modem = GsmModem(PORT, BAUDRATE)
-modem.connect(PIN)
 app = Flask(__name__)
+
+modem = serial.Serial(device,  9600, timeout=5)
+
+def send_sms(recipient, message):
+    time.sleep(0.5)
+    modem.write(b'ATZ\r')
+    time.sleep(0.5)
+    modem.write(b'AT+CMGF=1\r')
+    time.sleep(0.5)
+    modem.write(b'AT+CMGS="' + recipient.encode() + b'"\r')
+    time.sleep(0.5)
+    modem.write(message.encode() + b"\r")
+    time.sleep(0.5)
+    modem.write(bytes([26]))
+    time.sleep(0.5)
+
 
 @app.route('/send', methods=['GET'])
 def send():
     try:
         msg = request.args.get('msg')
+        token = request.args.get('token')
+        if token not in tokens:
+            return 'unauthorized'
         for recipient in recipients:
-            modem.sendSms(recipient, msg, waitForDeliveryReport=True)
+            send_sms(recipient, msg)
         return 'success'
     except:
         return 'error'
 
-app.run(port=3000)
+app.run(host='0.0.0.0', port=3000)
