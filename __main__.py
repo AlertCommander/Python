@@ -1,6 +1,7 @@
 recipients = ['+436503552474']
 tokens = ['abc123']
 device = "/dev/ttyUSB0"
+escalation_levels = ["Emergency", "Alert", "Critical", "Error", "Warning", "Notice", "Informational", "Debug"]
 
 import serial
 import time
@@ -29,6 +30,11 @@ def send():
     try:
         msg = request.args.get('msg')
         token = request.args.get('token')
+        level = request.args.get('level')
+
+        escalation_msg = escalation_levels[level]
+        msg = escalation_msg + "! \n" + msg
+
         if token not in tokens:
             return 'unauthorized'
         for recipient in recipients:
