@@ -30,7 +30,7 @@ def send():
     try:
         msg = request.args.get('msg')
         token = request.args.get('token')
-        level = request.args.get('level')
+        level = request.args.get('level', 5)
 
         escalation_msg = escalation_levels[level]
         msg = escalation_msg + "! \n" + msg
